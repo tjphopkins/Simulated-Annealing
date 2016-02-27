@@ -1,0 +1,536 @@
+%\documentclass[pdftex,11pt,a4paper,notitlepage]{article}
+\documentclass[12pt,a4paper,final]{iopart}
+\usepackage{iopams}  
+%\usepackage{graphicx}
+%\usepackage[breaklinks=true,colorlinks=true,linkcolor=blue,urlcolor=blue,citecolor=blue]{hyperref}
+
+\usepackage{booktabs,fixltx2e}
+\usepackage[flushleft]{threeparttable}
+
+
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{esdiff}
+\usepackage{listings}
+\usepackage[all]{xy}
+\usepackage{bm}
+\usepackage{cite}
+\usepackage{needspace}
+\usepackage[left=1in, right=1in, top=1in, bottom=1in]{geometry}
+\usepackage[pdftex]{graphicx}
+\usepackage[font=small,labelfont=bf]{caption}
+\usepackage[parfill]{parskip}
+\usepackage{float}
+\usepackage{color}
+\usepackage[font=small]{subcaption} 
+\usepackage{tabularx}
+\renewcommand{\arraystretch}{1.5}
+\usepackage[flushleft]{threeparttable}
+\usepackage{enumerate}
+
+%my vector formatting
+\newcommand{\vect}[1]{\boldsymbol{#1}}
+
+%floats kept in section:
+\usepackage[section]{placeins}
+
+%DOCUMENT
+
+\begin{document}
+
+% Title
+\title[Finding the minimum energy configuration of N point charges by simulated annealing]{Finding the minimum energy configuration of N point charges by simulated annealing}
+\author{Thomas Hopkins}
+\address{School of Physics \& Astronomy, University of Southampton}
+\ead{th1g11@soton.ac.uk}
+\date{26th April 2014}
+% End Title
+
+% Begin Notes
+
+\begin{abstract}
+Diffusion limited aggregation was simulated using the Witten-Sander model involving random walking particles on a two dimensional square lattice. Fractal aggregates formed from this process were analysed and their fractal dimension was estimated. Both a mass-radius method and a density-density correlation function method were used yielding, in close agreement with key publications, estimates of $1 .671 \pm 0.005$ and $1.71 \pm  0.02$ respectively.  We then introduce a sticking coefficient which governs the probability that a diffusing particle sticks when it comes into contact with the aggregate. It is found that reducing the sticking coefficient generates more densely packed structures and as the sticking coefficient tends to zero the fractal dimension moves towards 2, the dimension of the embedding space.
+\end{abstract}
+
+% Keywords required only for MST, PB, PMB, PM, JOA, JOB? 
+\vspace{2pc}
+\noindent{\it Keywords}: DLA, On-lattice, Fractal dimension
+%\maketitle
+
+
+
+\section{Introduction}
+The problem of finding the minimum electrostatic energy configuration of $N$ equal point charges confined to a 2-dimensional conducting disk was first proposed in 1985 by A.~Berezin \cite{berezin85}. Berezin drew attention to the``unexpected” result that the most energetically favourable configuration is not in general the one with $N$ charges distributed uniformly around the circumference of the disk.  M.~Rees \cite{rees85} and N.~M Queen \cite{queen85} quickly retorted, noting that in the limit of large $N$, it is to be expected that the configuration of discrete charges approach the continuum limit of a charge conducting disk. If the total charge is Q, then the charge density at a radius $r$ on a disc of radius $R$ is given by classical electrostatics as 
+
+\begin{equation}
+\frac{Q}{\sqrt{2\pi R(R^2-r^2)}}
+\end{equation} 
+
+Note however that the charge density \emph{does} tend to infinity at the boundary. 
+
+There has since been numerous works on the minimum energy configurations for discrete charges and it has been observed that for increasing $N \geq 12$, the charges arrange themselves in increasingly complex patterns of concentric rings consisting of equally spaced charges \cite{queen85, rees85, vennik85}. As more charges are added, some are expelled from the innermost ring to begin the formation of a new innermost ring. Following Vennik, we call the value of $N$ for which a charge is expelled from the innermost ring, a magic number. 
+
+The problem of determining the absolute minimum energy configuration is a difficult global optimization problem since there are many local minima to be avoided and thus a simple hill climb algorithm will not be effective. Often, this difficulty is further exacerbated by high potential barriers between local and global minima with solutions with different numbers of charges in the innermost ring \cite{nurmela98}. It has been reported that the method of simulated annealing performs well in discrete optimisation problems such as these \cite{kirkpatrick83]. By reducing a global parameter known as the ``temperature'', the system is slowly annealed into the optimal configuration by allowing it to surmount the potential well of a local minima with a probability dependent on the temperature.  
+
+A closely related, and very important packing problem involves determining the minimum energy configuration of a system of $N$ equal point charges confined to a sphere. This is known as the Generalised Thomson Problem, first considered by J.~J Thomson in 1904 as a consequence of his attempt to explain the periodic table in terms of rigid electron shells as part of the development of his plum pudding model for the atomic structure \cite{thomson1904}. The problem is reduced to two dimensions by observing that all the charges will be confined to the surface of a sphere as a consequence of Earnshaw's theorem  \cite{queen85}.
+
+Since Thomson's initial consideration, the problem has been shown to have applications in many areas of interest including multi-electron bubbles \cite{sanders87} , carbon buckeyballs, colloidal crystals \cite{bausch03} , and in biology is associated with the modelling of the icosahedral packing of  protein subunits in spherical viruses \cite{klug62}. 
+
+
+
+\section{Method}
+
+The energy of a system of N equal point charges, $q_i$ is well known to be given by 
+
+\begin{equation}
+\sum_i \sum_j \frac{q_i q_j}{r_{ij}}
+\end{equation}
+
+
+as a result of the repulsive Coulomb force that exists between each particle pair where $r_{ij}$ is the distance separating charges $q_i$ and $q_j$. This then is the function to be minimised.
+
+The process of simulated annealing proceeds as follows:
+
+\begin{enumerate}[1.]
+\item The system starts at a high temperature, $T$.
+\item The initial configuration of the point charges on the disc is chosen at random and a sufficiently high temperature $T$ is chosen. 
+\item One of the charges is chosen at random and moved in a random direction by a distance $\delta$. 
+\item The new energy of the system is evaluated.If the energy has reduced the move is accepted, otherwise the move is accepted with a probability proportional to $\exp(\frac{-\Delta W}{T})$ in order to allow the system to escape a non-global minima. 
+\item Steps 2--4 are repeated $M$ times.
+\item $T$ is reduced by a percentage $P$ and steps 1--6 are repeated until $T$ is greater than a chosen end condition.
+\end{enumerate}
+
+Note that the probability of accepting a move which increases the energy of the system decreases with the difference in energy and also with the temperature, to allow the system to settle into the optimal configuration as $T$ is reduced. As such, if at low temperatures the system finds itself in a local minima with a high potential separating it and the global minima, the charge may not have the opportunity to escape. For this reason, and as a consequence of the method relying on random processes, simulated annealing cannot guarantee that the lowest energy configuration will be found. 
+
+
+\section{Implementation}
+
+\subsection{The Disc}
+
+For simplification, we used a disc of radius 1, allowed $q=1$ and then quote the energies in units of $\frac{q^2}{R}$. To choose a random direction, values $x$ and $y$ in the interval [-1,1] were generated using a pseudo random number generator with a uniformly distributed output. The vector, $\vect{\delta} \equiv (x,y)$ was then normalised to length $\delta$ before the chosen particle was translated by $\vect{\delta}$.
+
+To increase the likelihood of finding the global minima, the system must be annealed slowly. An initial temperature of 10,000$\left[\frac{KR}{q^2 k_B}\right]$ was set and reduced by $P\%$ every $M$ iterations until $T$ reached a lower bound, $T_{min}=10^{-18}\left[\frac{KR}{q^2 k_B}\right]$  and the process was terminated. In general, for larger $N$, it was necessary to anneal the system more slowly by choosing a smaller $P$. This is a consequence of the number of local minima being greatly increased for larger $N$ \cite{nurmela98}. A greater number of iterations per temperature value, $M$ also affords the system more opportunity to escape non-optimal minima and hence, in general, the number of iterations per value of $T$, $M$ must also be increased with $N$. Of course, $P$ is reduced and $M$ is increased at the expense of processing time. Over the range $2 \leq N \leq 31$ we decreased $P$ from 10 to 3 and increased $M$ from 700 to 15000.
+ 
+
+Choosing a small $\delta$ allows for more detailed exploration but increases the probability of the system becoming unable to escape a sub-optimal configuration. An initial delta between 0.05 and 0.5 was chosen dependent on $M$, such that the charges were allowed to ``explore'' the full extent of the disc at higher temperature values. Below $T=10^{-3}\left[\frac{KR}{q^2 k_B}\right]$, it was hoped the system would be close to its optimal configuration and so $\delta$ was reduced by $5\%$ at each temperature change in order to refine the configuration. 
+ 
+The processing time required can be greatly reduced by storing each term in the sum over particle pairs in an $N\times N$ matrix, $W$ with 
+
+\begin{center}
+\begin{cases}
+W_{ij}=\frac{1}{r_{ij}} &\text{for } i<j \\
+W_{ij}=0 &\text{for } i\geq j
+\end{cases}
+\end{center}
+
+where $W_{ij}$ is the $ij$-th element of $W$. 
+
+Notice that $W$ can be kept upper triangular since it is not necessary to calculate both $W_{ij}$ and $W_{ji}$ as these are identical.  
+
+Here we modelled hard wall confinement where it is imagined that there is an infinitely high potential acting to confine the charges within the disc. If a particle moved outside the disc, its position vector would be normalized so that it remained on the circumference of the disc.
+
+Since the final configuration was not necessarily lower in energy than all previous steps in the annealing process, it was sensible to store the positions and the energy at all steps and from these choose the lowest energy configuration once the annealing process had been terminated.
+
+\subsection{The Sphere}
+
+For the sphere, the same method was extended to three dimensions in which the particles were confined to the surface of a unit sphere. A random initial configuration was chosen using the elegant sphere point picking method described in \cite{marsaglia72}.
+
+Any efficiency that could have been gained by managing the movement of charges in two dimensions, by the use of polar coordinates, is outweighed by the necessity to then convert the positions into three dimensional Cartesian coordinates for the energy calculation, which would have involved costly trigonometric functions. 
+
+Optimisation by simulated annealing was found to be a more efficient process on the surface of a sphere than on a disc. This implies that for the sphere, the number of local minima and/or the depth of nearby potential wells is smaller for the same N. 
+
+The temperature was reduced from 1000$\left[\frac{KR}{q^2 k_B}\right]$ by $3\%$ after every $M$ iterations where $M$ was increased from 5000 to 10,000 over the range $2 \leq N \leq 35$.Delta was initially set to 0.1 before being reduced to $10^{-4}$ for $10^{-9} \leq T \leq 10^{-3}\left[\frac{KR}{q^2 k_B}\right]$ and then $10^{-6}$ for $T<10^{-9}\left[\frac{KR}{q^2 k_B}\right]$.
+
+\section{Results and Discussion}
+
+\subsection{The Disc}
+
+
+\begin{table}[htbp]
+  \centering
+  \begin{threeparttable}
+  \caption{Minimum energies and corresponding optimal charge configurations for $N$ identical point charges confined to a 2-dimensional disc. Energies are quoted in units of $\frac{q^2}{R}$ where $q$ is the charge on each particle and $R$ is the radius of the disc.}
+    \begin{tabular}{lllllllll}
+    \toprule
+          &       & \multicolumn{2}{c}{\textbf{Ring No. ^{(1)}}} &       &       & \multicolumn{3}{c}{\textbf{Ring No. ^{(1)}}} \\
+    \midrule
+    \multicolumn{1}{l}{\textbf{N}} & \multicolumn{1}{l}{\textbf{Energy ($\frac{q^2}{R}$) ^{(2)}}} & \textbf{1} & \textbf{2} & \multicolumn{1}{l}{\textbf{N}} & \multicolumn{1}{l}{\textbf{Energy ($\frac{q^2}{R}$)^{(2)}}} & \textbf{1} & \textbf{2} & \textbf{3} \\
+    \multicolumn{1}{l}{2} & \multicolumn{1}{l}{0.50000} & 2     &       & \multicolumn{1}{l}{17} & \multicolumn{1}{l}{133.81656} & 15    & 2     &  \\
+    \multicolumn{1}{l}{3} & \multicolumn{1}{l}{1.73205} & 3     &       & \multicolumn{1}{l}{18} & \multicolumn{1}{l}{152.48191} & 16    & 2     &  \\
+    \multicolumn{1}{l}{4} & \multicolumn{1}{l}{3.82843} & 4     &       & \multicolumn{1}{l}{19} & \multicolumn{1}{l}{172.49483} & 16    & 3     &  \\
+    \multicolumn{1}{l}{5} & \multicolumn{1}{l}{6.88191} & 5     &       & \multicolumn{1}{l}{20} & \multicolumn{1}{l}{193.64297} & 17    & 3     &  \\
+    \multicolumn{1}{l}{6} & \multicolumn{1}{l}{10.96410} & 6     &       & \multicolumn{1}{l}{21} & \multicolumn{1}{l}{216.18204} & 18    & 3     &  \\
+    \multicolumn{1}{l}{7} & \multicolumn{1}{l}{16.13335} & 7     &       & \multicolumn{1}{l}{22} & \multicolumn{1}{l}{240.12173} & 18    & 4     &  \\
+    \multicolumn{1}{l}{8} & \multicolumn{1}{l}{22.43893} & 8     &       & \multicolumn{1}{l}{23} & \multicolumn{1}{l}{265.20114} & 19    & 4     &  \\
+    \multicolumn{1}{l}{9} & \multicolumn{1}{l}{29.92345} & 9     &       & \multicolumn{1}{l}{24} & \multicolumn{1}{l}{291.72791} & 20    & 4     &  \\
+    \multicolumn{1}{l}{10} & \multicolumn{1}{l}{38.62495} & 10    &       & \multicolumn{1}{l}{25} & \multicolumn{1}{l}{319.66562} & 20    & 5     &  \\
+    \multicolumn{1}{l}{11} & \multicolumn{1}{l}{48.57588} & 11    &       & \multicolumn{1}{l}{26} & \multicolumn{1}{l}{348.77099} & 21    & 5     &  \\
+    \multicolumn{1}{l}{12} & \multicolumn{1}{l}{59.57568} & 11    & 1     & \multicolumn{1}{l}{27*} & \multicolumn{1}{l}{379.62980} & 21    & 6     &  \\
+    \multicolumn{1}{l}{13} & \multicolumn{1}{l}{71.80736} & 12    & 1     & \multicolumn{1}{l}{([2]:} & \multicolumn{1}{l}{379.35332} & 22    & 5)    &  \\
+    \multicolumn{1}{l}{14} & \multicolumn{1}{l}{85.34730} & 13    & 1     & \multicolumn{1}{l}{28} & \multicolumn{1}{l}{411.34442} & 22    & 6     &  \\
+    \multicolumn{1}{l}{15} & \multicolumn{1}{l}{100.22110} & 14    & 1     & \multicolumn{1}{l}{29} & \multicolumn{1}{l}{444.54783} & 23    & 6     &  \\
+    \multicolumn{1}{l}{16*} & \multicolumn{1}{l}{116.531964 } & 14    & 2     & \multicolumn{1}{l}{30} & \multicolumn{1}{l}{479.07967} & 23    & 6     & 1 \\
+    \multicolumn{1}{l}{([1]:} & \multicolumn{1}{l}{116.452} & 15    & 1)    & \multicolumn{1}{l}{31} & \multicolumn{1}{l}{514.91732} & 24    & 6     & 1 \\
+    \bottomrule
+    \end{tabular}%
+    \begin{tablenotes}
+      \small
+      \item $^{(1)}$Number of charges in ring. Ring 1 is the outermost ring.
+	\item $^{(2)}$ Errors associated with the final value of $\delta$, the step size of the charge movement during the simulated annealing procedure, were calculated to be of the order $10^{-7}-10^{-15}$ and are therefore not quoted here.
+    \end{tablenotes}
+  \label{tab:addlabel}%
+ \end{threeparttable}
+\label{tab:disc}
+\end{table}%
+
+
+
+With the exception of N=16, 27 our results, presented in Table \ref{tab:disc} are consistent with the conjecturally optimal solutions reported in \cite{oymak01, worley06,nurmela98}. For N=16, with the processing power and time available to us, our algorithm failed to find the global minimum  of 116.45200 $\frac{q^2}{R}$  \cite{nurmela98} with a configuration of 15 charges on the circumference and 1 in the center, instead finding a close local minima of 116.53274 but with two particles in the centre. Similarly, we failed to find the minimum energy configuration for N=27. We are confident however that by allowing the algorithm to perform a sufficiently high number of iterations per temperature, the optimal configuration would be obtained.
+
+\begin{figure}\label{fig:polyplot}
+\centering
+\includegraphics[width=0.7\textwidth]{poly}
+\caption{2nd order polynomial relation between the number of equal point charges, $N$ confined to a 2-dimensional disc and the minimum energy, $W$ fitted to the results obtained by simulated annealing.} 
+\end{figure}
+
+Figure \ref{fig:polyplot} shows a second order polynomial fitted to a plot of (conjecturally) global energy minima.
+The fit yields a goodness of fit $R^2$ value of 0.9998 and as such we can be confident that the relationship produces a good estimation of the minimum energy in the range of $N$ over which it was fit, i.e. $2 \leq N \leq 31$. Moreover, the relation  yields results within $5\%$ of the best known values for $ 8 \leq N \leq 111$ \cite{oymak01, worley06,nurmela98}. Despite its success, to the best of our knowledge, there is no known analytical explanation for such a relationship. 
+
+Energies were weighted by the errors associated with the final value of the step size, $\delta$. These errors were too small to be plot as error bars on figure \ref{fig:polyplot}. The quoted uncertainties in the second order polynomial coefficients are the standard errors of the least squares fit, calculated from the corresponding covariance matrix. The $R^2$ goodness of fit statistic is calculated from the residual sum of squares and the total sum of squares. The non-optimal results obtained for $N=16$ and $17$ were not included when fitting the second order polynomial. 
+
+Figures \ref{fig:disc1} and \ref{fig:disc2} display visualisations of the minimum energy configurations that were obtained. 
+
+\begin{figure}\label{fig:disc1}
+\centering
+  \begin{subfigure}[b]{0.24\textwidth}
+    \includegraphics[width=\textwidth]{N=2}
+    \label{fig:1}
+  \end{subfigure}
+  \begin{subfigure}[b]{0.24\textwidth}
+    \includegraphics[width=\textwidth]{N=3}
+    \label{fig:2}
+  \end{subfigure}
+  \begin{subfigure}[b]{0.24\textwidth}
+    \includegraphics[width=\textwidth]{N=4}
+    \label{fig:1}
+  \end{subfigure}
+  \begin{subfigure}[b]{0.24\textwidth}
+    \includegraphics[width=\textwidth]{N=5}
+    \label{fig:2}
+  \end{subfigure}
+  \begin{subfigure}[b]{0.24\textwidth}
+    \includegraphics[width=\textwidth]{N=6}
+    \label{fig:2}
+  \end{subfigure}
+  \begin{subfigure}[b]{0.24\textwidth}
+    \includegraphics[width=\textwidth]{N=7}
+    \label{fig:2}
+  \end{subfigure}
+  \begin{subfigure}[b]{0.24\textwidth}
+    \includegraphics[width=\textwidth]{N=8}
+    \label{fig:2}
+  \end{subfigure}
+  \begin{subfigure}[b]{0.24\textwidth}
+    \includegraphics[width=\textwidth]{N=9}
+    \label{fig:2}
+  \end{subfigure}
+  \begin{subfigure}[b]{0.24\textwidth}
+    \includegraphics[width=\textwidth]{N=10}
+    \label{fig:2}
+  \end{subfigure}
+  \begin{subfigure}[b]{0.24\textwidth}
+    \includegraphics[width=\textwidth]{N=11}
+    \label{fig:2}
+  \end{subfigure}
+  \begin{subfigure}[b]{0.24\textwidth}
+    \includegraphics[width=\textwidth]{N=12}
+    \label{fig:2}
+  \end{subfigure}
+  \begin{subfigure}[b]{0.24\textwidth}
+    \includegraphics[width=\textwidth]{N=13}
+    \label{fig:2}
+  \end{subfigure}
+  \begin{subfigure}[b]{0.24\textwidth}
+    \includegraphics[width=\textwidth]{N=14}
+    \label{fig:2}
+  \end{subfigure}
+  \begin{subfigure}[b]{0.24\textwidth}
+    \includegraphics[width=\textwidth]{N=15}
+    \label{fig:2}
+  \end{subfigure}
+  \begin{subfigure}[b]{0.24\textwidth}
+    \includegraphics[width=\textwidth]{N=16}
+    \label{fig:2}
+  \end{subfigure}
+  \begin{subfigure}[b]{0.24\textwidth}
+    \includegraphics[width=\textwidth]{N=17}
+    \label{fig:2}
+  \end{subfigure}
+  \begin{subfigure}[b]{0.24\textwidth}
+    \includegraphics[width=\textwidth]{N=18}
+    \label{fig:2}
+  \end{subfigure}
+  \begin{subfigure}[b]{0.24\textwidth}
+    \includegraphics[width=\textwidth]{N=19}
+    \label{fig:2}
+  \end{subfigure}
+  \begin{subfigure}[b]{0.24\textwidth}
+    \includegraphics[width=\textwidth]{N=20}
+    \label{fig:2}
+  \end{subfigure}
+  \begin{subfigure}[b]{0.24\textwidth}
+    \includegraphics[width=\textwidth]{N=21}
+    \label{fig:2}
+  \end{subfigure}
+  \caption{Coonfigurations of N equal point charges confined to a 2-dimensional disc for $2 \leq N \leq 17$.}
+\end{figure}
+
+\begin{figure}\label{fig:disc2}
+\centering
+  \begin{subfigure}[b]{0.24\textwidth}
+    \includegraphics[width=\textwidth]{N=22}
+    \label{fig:1}
+  \end{subfigure}
+  \begin{subfigure}[b]{0.24\textwidth}
+    \includegraphics[width=\textwidth]{N=23}
+    \label{fig:2}
+  \end{subfigure}
+  \begin{subfigure}[b]{0.24\textwidth}
+    \includegraphics[width=\textwidth]{N=24}
+    \label{fig:1}
+  \end{subfigure}
+  \begin{subfigure}[b]{0.24\textwidth}
+    \includegraphics[width=\textwidth]{N=25}
+    \label{fig:2}
+  \end{subfigure}
+  \begin{subfigure}[b]{0.24\textwidth}
+    \includegraphics[width=\textwidth]{N=26}
+    \label{fig:2}
+  \end{subfigure}
+  \begin{subfigure}[b]{0.24\textwidth}
+    \includegraphics[width=\textwidth]{N=27}
+    \label{fig:2}
+  \end{subfigure}
+  \begin{subfigure}[b]{0.24\textwidth}
+    \includegraphics[width=\textwidth]{N=28}
+    \label{fig:2}
+  \end{subfigure}
+  \begin{subfigure}[b]{0.24\textwidth}
+    \includegraphics[width=\textwidth]{N=29}
+    \label{fig:2}
+  \end{subfigure}
+  \begin{subfigure}[b]{0.24\textwidth}
+    \includegraphics[width=\textwidth]{N=30}
+    \label{fig:2}
+  \end{subfigure}
+  \begin{subfigure}[b]{0.24\textwidth}
+    \includegraphics[width=\textwidth]{N=31}
+    \label{fig:2}
+  \end{subfigure}
+  \caption{Coonfigurations of N equal point charges confined to a 2-dimensional disc for $18 \leq N \leq 31$.}
+\end{figure}
+
+\subsection{The Sphere}
+
+Our simulated annealing algorithm was found to be very successful in finding the optimal configuration on the surface of a sphere. The results can be found in \ref{tab:2} and are consistent with analytically proven results for N=2, 3, 4 6 and 12 (see \cite{ana1, ana2, ana3, ana4, ana5} and the references therein) and the best known numerically obtained results (reported in \cite{spheretable} and tabulated in \cite{swarm}). The corresponding geometric configurations produced by our algorithm are also consistent with the best known results. 
+ 
+The procedure was computationally more efficient than for the equivalent  problem on the disc. This would imply that the potential wells of local minima close to the  global minima were shallower and fewer in number.
+
+\begin{table}[htbp] 
+  \centering
+  \begin{threeparttable}
+  \caption{Minimum energies for $N$ identical charged point particles confined to the surface of a sphere. Energies quotes in units of $\frac{q^2}{R}$ where $q$ is the charge on each particle and $R$ is the radius of the sphere}
+    \begin{tabular}{llll}
+    \toprule
+    
+\textbf{N} & \textbf{Energy($\frac{q^2}{R}$)}  & \textbf{N} & \textbf{Energy($\frac{q^2}{R}$)}  \\
+    \midrule
+    2     & 0.50000  & 19    & 135.08947 $\pm$ 0.00009 \\
+    3     & 1.73205  & 20    & 150.88157 $\pm$ 0.0001 \\
+    4     & 3.67423  & 21    & 167.6416 $\pm$ 0.0001 \\
+    5     & 6.47469  & 22    & 185.2875 $\pm$  0.0001 \\
+    6     & 9.98528  & 23    & 203.9302 $\pm$ 0.0001 \\
+    7     & 14.45298 $\pm$ 0.00001 & 24    & 223.3471 $\pm$  0.0001 \\
+    8     & 19.67529 $\pm$ 0.00001 & 25    & 243.8128 $\pm$  0.0002 \\
+    9     & 25.75999 $\pm$ 0.00002 & 26    & 265.1333 $\pm$ 0.0002 \\
+    10    & 32.71695 $\pm$ 0.00002 & 27    & 287.3026 $\pm$ 0.0002 \\
+    11    & 40.59645 $\pm$ 0.00003 & 28    & 310.4916 $\pm$ 0.0002 \\
+    12    & 49.16525 $\pm$ 0.00003 & 29    & 334.6347 $\pm$ 0.0002 \\
+    13    & 58.85323 $\pm$ 0.00004 & 30    & 359.6040 $\pm$ 0.0002 \\
+    14    & 69.30636 $\pm$  0.00005 & 31    & 385.5308$\pm$  0.0002 \\
+    15    & 80.67024 $\pm$ 0.00005 & 32    & 412.2613 $\pm$ 0.0002 \\
+    16    & 92.91166 $\pm$ 0.00006 & 33    & 440.2041 $\pm$ 0.0003 \\
+    17    & 106.05040 $\pm$ 0.00007 & 34    & 468.9049 $\pm$ 0.0003 \\
+    18    & 120.08447 $\pm$ 0.00008 & 35    & 498.5699 $\pm$0.0003 \\
+    \bottomrule
+    \end{tabular}%
+    \begin{tablenotes}
+      \small
+      \item Uncertainties quoted are those arising from the final size of $\delta$, the step size in the simulated annealing procedure.
+    \end{tablenotes}
+  \label{tab:2}%
+ \end{threeparttable}
+\end{table}%
+
+As with the problem on the disc, a second order polynomial has been fitted to a plot of (conjecturally) global energy minima (see figure \ref{fig:polysphere}. The fit yields a goodness of fit $R^2$ value of 0.9996 and as such we can be confident that the relationship produces a good estimation of the minimum energy in the range of $N$ over which it was fit, i.e. $2 \leq N \leq 35$. Moreover, the relation  yields results within $5\%$ of the best known values for $4 \leq N \leq 74$. 
+ 
+ 
+
+
+\begin{figure}\label{fig:polysphere}
+\centering
+\includegraphics[width=0.7\textwidth]{polysphere}
+\caption{2nd order polynomial relation between the number of identical point charges, $N$ confined to a 2-dimensional disc and the minimum energy, $W$ fitted to the results obtained by simulated annealing.}
+\end{figure}
+ 
+
+
+
+\section{Conclusion}
+
+The application of the simulated annealing global optimisation method to the problem of determining the minimum electrostatic energy configuration of N equal point charges confined to a 2 dimensional circular disc has yielded results consistent with the best known published values. A second order polynomial was fitted to our data and appears to provide close approximations to the numerical calculations yet no known analytical explanation for this relationship exists. In the future it is hoped a theoretical explanation for the relation will be proposed.  
+Simulated annealing was also found to be an effective and efficient method of finding experimental solutions to Thompson’s important and still theoretically unsolved problem of finding the minimum electrostatic energy configuration of N electrons on the surface of a unit sphere. Again, a second order polynomial relationship has been proposed but with yet no known analytical explanation.  
+
+It may prove interesting to compare the efficiency of simulated annealing to other proposed methods such as particle swarm optimisation \cite{swarm} and evolutionary algorithms \cite{evolve} for solving the Thomson problem. 
+
+
+
+
+
+
+\clearpage
+
+\section*{References}
+
+\begin{thebibliography}{9999}
+
+\bibitem{nurmela98}
+\noindent
+K.~J. Nurmela.
+``Minimum-energy point charge configurations on a circular disk''.
+{\em J. Phys. A: Math. Gen.}, 31: 1035--1047, 1998.
+
+\bibitem{worley06}
+\noindent
+A.~Worley.
+``Minimal energy configurations for charged particles on a thin conducting disc: the perimeter particles''.
+arXiv:physics/0609231 [physics.gen-ph], 2006.
+
+\bibitem{vennik85}
+\noindent
+L.~T. Wille and J. ~Vennik.
+``Diffusion-limited aggregation''.
+{\em J. Phys. A: Math. Gen.}, 18: L1113--L1117, 1985.
+
+\bibitem{kirkpatrick83}
+\noindent
+S.~Kirkpatrick, C.~ D. Gelatt Jr., and M.~ P. Vecchi.
+``Optimization by Simulated Annealing.''
+{\em Science}, 220(4598): 671--680, 1983.
+
+\bibitem{queen85}
+\noindent
+N.~M. Queen.
+``The distribution of charges in classical electrostatics.''
+{\em Nature}, 317: 208, 1985.
+
+\bibitem{rees85}
+\noindent
+M.~Rees.
+``The distribution of charges in classical electrostatics.''
+{\em Nature}, 317: 208, 1985.
+
+\bibitem{berezin85}
+\noindent
+A.~A. Berezin.
+``The distribution of charges in classical electrostatics.''
+{\em Nature}, 315: 104, 1985.
+
+\bibitem{thomson1904}
+\noindent
+J.~J. Thomson.
+``On the Structure of the Atom: an Investigation of the Stability and Periods of Oscillation of a number of Corpuscles arranged at equal intervals around the Circumference of a Circle; with Application of the Results to the Theory of Atomic Structure.'' 
+{\em Philosophical Magazine}, Series 6, 7(39):237-–265, 1904.
+
+\bibitem{sanders87}
+\noindent
+G. G. Ihas and T. M. Sanders,
+``''
+{\em Jpn. J. Appl. Phys.}, 26:2097--2098, 1987.
+
+\bibitem{bausch03}
+\noindent
+A.~R. Bausch et al,
+``Grain Boundary Scars and Spherical Crystallography,''
+{\em Science}, 299(5613): 1716--1718, 2003.
+
+\bibitem{klug62}
+\noindent
+D. L. D. Caspar and A. Klug,
+``Physical Principles in the Construction of Regular Viruses,''
+{\em Cold Spring Harb Symp Quant Biol}, 27: 1--24, 1962.
+
+\bibitem{marsaglia72}
+\noindent
+G.~Marsaglia,``Choosing a Point from the Surface of a Sphere,'' {\em Ann. Math. Stat.}, 43: 645--646, 1972.
+
+\bibitem{oymak01}
+\noindent
+H.~Oymak and S.~Erkoc,
+``Energetics and stability of discrete charge distribution on a conducting disk,''
+{\em International Journal of Modern Physics C}, 12(02): 293--305, 2001.
+
+
+\bibitem{ana1}
+\noindent
+R.~E Schwartz,
+``The Five-Electron Case of Thomson’s Problem.''
+{\em Experimental Mathematics}, 22(2): 157--186, 2013.
+
+\bibitem{ana2}
+\noindent
+V.~A Yudin,
+``The minimum of potential energy of a system of point charges,"
+{\em Discrete Math. Appl} 3(1): 75--81, 1993. 
+
+\bibitem{ana3}
+\noindent
+N.~N Andreev,
+`` An extremal property of the icosahedron,'' 
+{\em East J. Approximation},2(4): 459--462, 1996,
+
+\bibitem{ana4}
+\noindent
+A.V. Kolushov, V.A. Yudin, ``Extremal dispositions of points on the sphere,'' {\em Anal. Math.}, 23(1):25--34,1997.
+
+\bibitem{ana5}
+\noindent
+S. V. Borodachov, D. P. Hardin and E. B. Saff,
+``Asymptotics of best-packing on rectifiable sets,''
+{\em Proc. Amer. Math. Soc.}, 135(8): 2369--2380, 2007.
+
+
+\bibitem{swarm}
+\noindent
+A. Bautu and E. Bautu,
+``Energy minimization of point charges on a sphere with particle swarms,''
+{\em Romanian Journal of Physics},
+54(1/2): 29--36, 2009.
+
+\bibitem{evolve}
+\noindent
+J. R. Morris, D. M. Deaven and K. M. Ho,``Genetic-algorithm
+energy minimization for point charges on a sphere,'' {\em Physical Review B},
+53(4), R1740R1743, 1996.
+
+\bibitem{spheretable}
+\noindent 
+D.J. Wales, S. Ulker, ``Structure and Dynamics of Spherical Crystals Characterized for the
+Thomson Problem,'' {\em Physical Review B}, 74, 212101, 2006.
+
+
+\end{thebibliography}
+
+\end{document}
